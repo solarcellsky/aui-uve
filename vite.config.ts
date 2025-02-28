@@ -11,4 +11,7 @@ export default defineConfig({
     extensions: ['.js', '.vue', '.json', '.ts']
   },
   plugins: [vue()],
+  server: {
+    open: true,
+  }
 })
