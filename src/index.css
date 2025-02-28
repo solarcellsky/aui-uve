@@ -26,6 +26,8 @@ body {
   margin: 0;
   display: flex;
   place-items: center;
+  justify-content: center;
+  width: 100vw;
   min-width: 320px;
   min-height: 100vh;
 }
@@ -52,17 +54,6 @@ button:hover {
 button:focus,
 button:focus-visible {
   outline: 4px auto -webkit-focus-ring-color;
-}
-
-.card {
-  padding: 2em;
-}
-
-#app {
-  max-width: 1280px;
-  margin: 0 auto;
-  padding: 2rem;
-  text-align: center;
 }
 
 @media (prefers-color-scheme: light) {
