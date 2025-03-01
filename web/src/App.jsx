@@ -4,12 +4,13 @@ import {
   Conversations,
   Prompts,
   Sender,
+  Suggestion,
   Welcome,
   useXAgent,
   useXChat,
-} from '@ant-design/x';
-import { createStyles } from 'antd-style';
-import React, { useEffect } from 'react';
+} from "@ant-design/x";
+import { createStyles } from "antd-style";
+import React, { useEffect } from "react";
 import {
   CloudUploadOutlined,
   CommentOutlined,
@@ -21,14 +22,42 @@ import {
   ReadOutlined,
   ShareAltOutlined,
   SmileOutlined,
-} from '@ant-design/icons';
-import { Badge, Button, Space } from 'antd';
-import FMT from './assets/fmt.webp';
-import X from './assets/x.svg';
+  OpenAIFilled,
+} from "@ant-design/icons";
+import { Badge, Button, Space } from "antd";
+import FMT from "./assets/fmt.webp";
+import X from "./assets/x.svg";
 
 const BASE_URL = import.meta.env.VITE_BASE_URL;
 const PATH = import.meta.env.VITE_PATH;
-const MODEL = "deepseek-r1:1.5b";
+const MODEL = import.meta.env.VITE_MODEL;
+const API_KEY = import.meta.env.VITE_API_KEY;
+
+const suggestions = [
+  {
+    label: "Write a report",
+    value: "report",
+  },
+  {
+    label: "Draw a picture",
+    value: "draw",
+  },
+  {
+    label: "Check some knowledge",
+    value: "knowledge",
+    icon: <OpenAIFilled />,
+    children: [
+      {
+        label: "About React",
+        value: "react",
+      },
+      {
+        label: "About Ant Design",
+        value: "antd",
+      },
+    ],
+  },
+];
 const renderTitle = (icon, title) => (
   <Space align="start">
     {icon}
@@ -37,8 +66,8 @@ const renderTitle = (icon, title) => (
 );
 const defaultConversationsItems = [
   {
-    key: '0',
-    label: 'What is Ant Design X?',
+    key: "0",
+    label: "What is Ant Design X?",
   },
 ];
 const useStyle = createStyles(({ token, css }) => {
@@ -120,48 +149,52 @@ const useStyle = createStyles(({ token, css }) => {
 });
 const placeholderPromptsItems = [
   {
-    key: '1',
+    key: "1",
     label: renderTitle(
       <FireOutlined
         style={{
-          color: '#FF4D4F',
+          color: "#FF4D4F",
         }}
       />,
-      'Hot Topics',
+      "Hot Topics"
     ),
-    description: 'What are you interested in?',
+    description: "What are you interested in?",
     children: [
       {
-        key: '1-1',
+        key: "1-1",
         icon: <HeartOutlined />,
-        description: `why is the sky blue? `,
+        description: "why is the sky blue? ",
+        messages: [
+          { role: "system", content: "You are a helpful assistant." },
+          { role: "user", content: "why is the sky blue? " },
+        ],
       },
     ],
   },
   {
-    key: '2',
+    key: "2",
     label: renderTitle(
       <ReadOutlined
         style={{
-          color: '#1890FF',
+          color: "#1890FF",
         }}
       />,
-      'Design Guide',
+      "Design Guide"
     ),
-    description: 'How to design a good product?',
+    description: "How to design a good product?",
     children: [
       {
-        key: '2-1',
+        key: "2-1",
         icon: <HeartOutlined />,
         description: `Know the well`,
       },
       {
-        key: '2-2',
+        key: "2-2",
         icon: <SmileOutlined />,
         description: `Set the AI role`,
       },
       {
-        key: '2-3',
+        key: "2-3",
         icon: <CommentOutlined />,
         description: `Express the feeling`,
       },
@@ -170,23 +203,23 @@ const placeholderPromptsItems = [
 ];
 const senderPromptsItems = [
   {
-    key: '1',
-    description: 'Hot Topics',
+    key: "1",
+    description: "Hot Topics",
     icon: (
       <FireOutlined
         style={{
-          color: '#FF4D4F',
+          color: "#FF4D4F",
         }}
       />
     ),
   },
   {
-    key: '2',
-    description: 'Design Guide',
+    key: "2",
+    description: "Design Guide",
     icon: (
       <ReadOutlined
         style={{
-          color: '#1890FF',
+          color: "#1890FF",
         }}
       />
     ),
@@ -194,7 +227,7 @@ const senderPromptsItems = [
 ];
 const roles = {
   ai: {
-    placement: 'start',
+    placement: "start",
     typing: {
       step: 5,
       interval: 20,
@@ -206,8 +239,8 @@ const roles = {
     },
   },
   local: {
-    placement: 'end',
-    variant: 'shadow',
+    placement: "end",
+    variant: "shadow",
   },
 };
 const Independent = () => {
@@ -216,40 +249,46 @@ const Independent = () => {
 
   // ==================== State ====================
   const [headerOpen, setHeaderOpen] = React.useState(false);
-  const [content, setContent] = React.useState('');
-  const [conversationsItems, setConversationsItems] = React.useState(defaultConversationsItems);
-  const [activeKey, setActiveKey] = React.useState(defaultConversationsItems[0].key);
+  const [content, setContent] = React.useState("");
+  const [conversationsItems, setConversationsItems] = React.useState(
+    defaultConversationsItems
+  );
+  const [activeKey, setActiveKey] = React.useState(
+    defaultConversationsItems[0].key
+  );
   const [attachedFiles, setAttachedFiles] = React.useState([]);
 
   // ==================== Runtime ====================
   const [agent] = useXAgent({
-  request: async ({ message }, { onSuccess, onError }) => {
-    try {
-      const response = await fetch(`${BASE_URL}${PATH}`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({
-          format: 'json',
-          model: MODEL,
-          prompt: message,
-          stream: false
-        }),
-      });
+    request: async ({ message }, { onSuccess, onError }) => {
+      try {
+        const response = await fetch(`${BASE_URL}${PATH}`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${API_KEY}`,
+          },
+          body: JSON.stringify({
+            format: "json",
+            model: MODEL,
+            messages: message,
+            stream: false,
+          }),
+        });
 
-      if (!response.ok) {
-        throw new Error('Network response was not ok');
+        if (!response.ok) {
+          throw new Error("Network response was not ok");
+        }
+
+        const data = await response.json();
+
+        onSuccess(data.choices[0].message.content);
+      } catch (error) {
+        onError(error.message);
       }
+    },
+  });
 
-      const data = await response.json();
-      console.log(data);
-      onSuccess(data.response);
-    } catch (error) {
-      onError(error.message);
-    }
-  },
-});
   const { onRequest, messages, setMessages } = useXChat({
     agent,
   });
@@ -263,10 +302,10 @@ const Independent = () => {
   const onSubmit = (nextContent) => {
     if (!nextContent) return;
     onRequest(nextContent);
-    setContent('');
+    setContent("");
   };
   const onPromptsItemClick = (info) => {
-    onRequest(info.data.description);
+    onRequest(info.data.messages);
   };
   const onAddConversation = () => {
     setConversationsItems([
@@ -303,7 +342,7 @@ const Independent = () => {
         items={placeholderPromptsItems}
         styles={{
           list: {
-            width: '100%',
+            width: "100%",
           },
           item: {
             flex: 1,
@@ -315,13 +354,17 @@ const Independent = () => {
   );
   const items = messages.map(({ id, message, status }) => ({
     key: id,
-    loading: status === 'loading',
-    role: status === 'local' ? 'local' : 'ai',
+    loading: status === "loading",
+    role: status === "local" ? "local" : "ai",
     content: message,
   }));
   const attachmentsNode = (
     <Badge dot={attachedFiles.length > 0 && !headerOpen}>
-      <Button type="text" icon={<PaperClipOutlined />} onClick={() => setHeaderOpen(!headerOpen)} />
+      <Button
+        type="text"
+        icon={<PaperClipOutlined />}
+        onClick={() => setHeaderOpen(!headerOpen)}
+      />
     </Badge>
   );
   const senderHeader = (
@@ -340,14 +383,14 @@ const Independent = () => {
         items={attachedFiles}
         onChange={handleFileChange}
         placeholder={(type) =>
-          type === 'drop'
+          type === "drop"
             ? {
-                title: 'Drop file here',
+                title: "Drop file here",
               }
             : {
                 icon: <CloudUploadOutlined />,
-                title: 'Upload files',
-                description: 'Click or drag files to this area to upload',
+                title: "Upload files",
+                description: "Click or drag files to this area to upload",
               }
         }
       />
@@ -355,11 +398,7 @@ const Independent = () => {
   );
   const logoNode = (
     <div className={styles.logo}>
-      <img
-        src={X}
-        draggable={false}
-        alt="logo"
-      />
+      <img src={X} draggable={false} alt="logo" />
       <span>Ant Design X</span>
     </div>
   );
@@ -396,7 +435,7 @@ const Independent = () => {
               : [
                   {
                     content: placeholderNode,
-                    variant: 'borderless',
+                    variant: "borderless",
                   },
                 ]
           }
@@ -406,15 +445,35 @@ const Independent = () => {
         {/* 🌟 提示词 */}
         <Prompts items={senderPromptsItems} onItemClick={onPromptsItemClick} />
         {/* 🌟 输入框 */}
-        <Sender
-          value={content}
-          header={senderHeader}
-          onSubmit={onSubmit}
-          onChange={setContent}
-          prefix={attachmentsNode}
-          loading={agent.isRequesting()}
-          className={styles.sender}
-        />
+        <Suggestion
+          items={suggestions}
+          onSelect={(itemVal) => {
+            setContent(`[${itemVal}]:`);
+          }}
+        >
+          {({ onTrigger, onKeyDown }) => {
+            return (
+              <Sender
+                value={content}
+                header={senderHeader}
+                onSubmit={onSubmit}
+                onChange={(nextVal) => {
+                  if (nextVal === "/") {
+                    onTrigger();
+                  } else if (!nextVal) {
+                    onTrigger(false);
+                  }
+                  setContent(nextVal);
+                }}
+                onKeyDown={onKeyDown}
+                prefix={attachmentsNode}
+                loading={agent.isRequesting()}
+                className={styles.sender}
+                placeholder="输入 / 获取建议"
+              />
+            );
+          }}
+        </Suggestion>
       </div>
     </div>
   );

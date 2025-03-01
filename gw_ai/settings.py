@@ -1,0 +1,15 @@
+API_TITLE = "GW AI Api"
+API_VERSION = "v0.0.1"
+OPENAPI_VERSION = "3.0.2"
+OPENAPI_URL_PREFIX = ""
+OPENAPI_SWAGGER_UI_PATH = "/doc"
+OPENAPI_SWAGGER_UI_URL = "/swagger-ui-assets/"
+
+# Database
+SQLALCHEMY_DATABASE_URI = 'postgresql://solar:postgres@127.0.0.1:15432/private_finance'
+SQLALCHEMY_TRACK_MODIFICATIONS = True
+SQLALCHEMY_ECHO = True
+SQLALCHEMY_POOL_RECYCLE = 4 * 3600
+
+# modules
+EXT_MODULES = ['gw_ai.apis']
