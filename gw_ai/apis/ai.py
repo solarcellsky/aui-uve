@@ -1,7 +1,5 @@
-from flask import request
 from flask.views import MethodView
 from flask_smorest import Blueprint
-from gw_ai.ext.dep import db
 from gw_ai.ext.commons import rest
 from openai import OpenAI
 
@@ -13,6 +11,10 @@ class AiResource(MethodView):
 
     @bp.doc(description="Ai API")
     def get(self, params):
+
+        # VITE_API_KEY = "sk-67556059568b41d9847249dab6869ca4"
+        # VITE_PATH = "/chat/completions"
+        # VITE_MODEL = "deepseek-chat"
 
         client = OpenAI(api_key="sk-67556059568b41d9847249dab6869ca4",
                         base_url="https://api.deepseek.com")

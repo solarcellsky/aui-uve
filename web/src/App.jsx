@@ -27,11 +27,7 @@ import {
 import { Badge, Button, Space } from "antd";
 import FMT from "./assets/fmt.webp";
 import X from "./assets/x.svg";
-
-const BASE_URL = import.meta.env.VITE_BASE_URL;
-const PATH = import.meta.env.VITE_PATH;
-const MODEL = import.meta.env.VITE_MODEL;
-const API_KEY = import.meta.env.VITE_API_KEY;
+import { gwAiApi } from "@/apis";
 
 const suggestions = [
   {
@@ -261,31 +257,14 @@ const Independent = () => {
   // ==================== Runtime ====================
   const [agent] = useXAgent({
     request: async ({ message }, { onSuccess, onError }) => {
-      try {
-        const response = await fetch(`${BASE_URL}${PATH}`, {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${API_KEY}`,
-          },
-          body: JSON.stringify({
-            format: "json",
-            model: MODEL,
-            messages: message,
-            stream: false,
-          }),
+      gwAiApi
+        .fetch(message)
+        .then((res) => {
+          onSuccess(res.data);
+        })
+        .catch((error) => {
+          onError(error.message);
         });
-
-        if (!response.ok) {
-          throw new Error("Network response was not ok");
-        }
-
-        const data = await response.json();
-
-        onSuccess(data.choices[0].message.content);
-      } catch (error) {
-        onError(error.message);
-      }
     },
   });
 

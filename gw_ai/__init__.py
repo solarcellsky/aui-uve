@@ -7,7 +7,7 @@ from gw_ai.ext.utils.loader_utils import register_module_apis
 
 def create_app():
     app = Flask(__name__)
-    app.config.from_object('private_finance.settings')
+    app.config.from_object('gw_ai.settings')
 
     # init
     CORS(app)
