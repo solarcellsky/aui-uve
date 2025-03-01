@@ -385,7 +385,7 @@ const Independent = () => {
         {/* 🌟 开启深度思考 搜索 */}
         <Flex gap="small" wrap>
           <Button
-            type="primary"
+            type="default"
             size="small"
             shape="round"
             icon={<ThunderboltOutlined />}
@@ -394,7 +394,7 @@ const Independent = () => {
             DeepThink
           </Button>
           <Button
-            type="primary"
+            type="default"
             size="small"
             shape="round"
             icon={<GlobalOutlined />}
