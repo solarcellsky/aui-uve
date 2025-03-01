@@ -6,9 +6,10 @@
  * isToken是否需要token
  */
 import axios from 'axios';
-console.log(import.meta.env.VITE_BASE_URL)
+const baseURL = import.meta.env.VITE_BASE_URL;
+// 创建axios实例
 const service = axios.create({
-  baseURL: import.meta.env.VITE_BASE_URL, // 本地-前端解决跨域
+  baseURL: baseURL, // 本地-前端解决跨域
   timeout: 600000, // 请求超时时间
   validateStatus: function (status) {
     return status >= 200 && status <= 500;

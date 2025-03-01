@@ -11,4 +11,9 @@ export default defineConfig({
     extensions: ['.js', '.json', '.ts'],
   },
   plugins: [react()],
+  server: {
+    host: '0.0.0.0',
+    port: 6688,
+    open: true
+  },
 })

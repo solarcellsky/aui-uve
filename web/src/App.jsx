@@ -13,18 +13,18 @@ import { createStyles } from "antd-style";
 import React, { useEffect } from "react";
 import {
   CloudUploadOutlined,
-  CommentOutlined,
   EllipsisOutlined,
-  FireOutlined,
-  HeartOutlined,
   PaperClipOutlined,
   PlusOutlined,
-  ReadOutlined,
   ShareAltOutlined,
-  SmileOutlined,
   OpenAIFilled,
+  UserOutlined,
+  SyncOutlined,
+  CopyOutlined,
+  GlobalOutlined,
+  ThunderboltOutlined,
 } from "@ant-design/icons";
-import { Badge, Button, Space } from "antd";
+import { Badge, Button, Flex, Space } from "antd";
 import FMT from "./assets/fmt.webp";
 import X from "./assets/x.svg";
 import { gwAiApi } from "@/apis";
@@ -54,29 +54,21 @@ const suggestions = [
     ],
   },
 ];
-const renderTitle = (icon, title) => (
-  <Space align="start">
-    {icon}
-    <span>{title}</span>
-  </Space>
-);
+
 const defaultConversationsItems = [
   {
     key: "0",
-    label: "What is Ant Design X?",
+    label: "Hello World",
   },
 ];
 const useStyle = createStyles(({ token, css }) => {
   return {
     layout: css`
-      width: 1000px;
-      height: 700px;
-      border-radius: ${token.borderRadius}px;
+      width: 100vw;
+      height: 100vh;
       display: flex;
       background: ${token.colorBgContainer};
       font-family: AlibabaPuHuiTi, ${token.fontFamily}, sans-serif;
-      box-shadow: ${token.boxShadow};
-      border: 1px solid ${token.colorBorder};
       .ant-prompts {
         color: ${token.colorText};
       }
@@ -143,84 +135,7 @@ const useStyle = createStyles(({ token, css }) => {
     `,
   };
 });
-const placeholderPromptsItems = [
-  {
-    key: "1",
-    label: renderTitle(
-      <FireOutlined
-        style={{
-          color: "#FF4D4F",
-        }}
-      />,
-      "Hot Topics"
-    ),
-    description: "What are you interested in?",
-    children: [
-      {
-        key: "1-1",
-        icon: <HeartOutlined />,
-        description: "why is the sky blue? ",
-        messages: [
-          { role: "system", content: "You are a helpful assistant." },
-          { role: "user", content: "why is the sky blue? " },
-        ],
-      },
-    ],
-  },
-  {
-    key: "2",
-    label: renderTitle(
-      <ReadOutlined
-        style={{
-          color: "#1890FF",
-        }}
-      />,
-      "Design Guide"
-    ),
-    description: "How to design a good product?",
-    children: [
-      {
-        key: "2-1",
-        icon: <HeartOutlined />,
-        description: `Know the well`,
-      },
-      {
-        key: "2-2",
-        icon: <SmileOutlined />,
-        description: `Set the AI role`,
-      },
-      {
-        key: "2-3",
-        icon: <CommentOutlined />,
-        description: `Express the feeling`,
-      },
-    ],
-  },
-];
-const senderPromptsItems = [
-  {
-    key: "1",
-    description: "Hot Topics",
-    icon: (
-      <FireOutlined
-        style={{
-          color: "#FF4D4F",
-        }}
-      />
-    ),
-  },
-  {
-    key: "2",
-    description: "Design Guide",
-    icon: (
-      <ReadOutlined
-        style={{
-          color: "#1890FF",
-        }}
-      />
-    ),
-  },
-];
+
 const roles = {
   ai: {
     placement: "start",
@@ -230,13 +145,22 @@ const roles = {
     },
     styles: {
       content: {
-        borderRadius: 16,
+        borderRadius: 8,
       },
     },
   },
   local: {
     placement: "end",
-    variant: "shadow",
+    typing: {
+      step: 5,
+      interval: 20,
+    },
+    styles: {
+      content: {
+        background: "#eff6ff",
+        borderRadius: 8,
+      },
+    },
   },
 };
 const Independent = () => {
@@ -254,11 +178,20 @@ const Independent = () => {
   );
   const [attachedFiles, setAttachedFiles] = React.useState([]);
 
+  const aiAvatar = {
+    color: "#f56a00",
+    backgroundColor: "#fde3cf",
+  };
+  const localAvatar = {
+    color: "#fff",
+    backgroundColor: "#87d068",
+  };
+
   // ==================== Runtime ====================
   const [agent] = useXAgent({
     request: async ({ message }, { onSuccess, onError }) => {
       gwAiApi
-        .fetch(message)
+        .deepSeek({ message })
         .then((res) => {
           onSuccess(res.data);
         })
@@ -283,9 +216,6 @@ const Independent = () => {
     onRequest(nextContent);
     setContent("");
   };
-  const onPromptsItemClick = (info) => {
-    onRequest(info.data.messages);
-  };
   const onAddConversation = () => {
     setConversationsItems([
       ...conversationsItems,
@@ -307,7 +237,7 @@ const Independent = () => {
       <Welcome
         variant="borderless"
         icon={<img src={FMT} draggable={false} alt="fmt" />}
-        title="Hello, I'm Ant Design X"
+        title="Hello, I'm your AI assistant"
         description="Base on Ant Design, AGI product interface solution, create a better intelligent vision~"
         extra={
           <Space>
@@ -316,27 +246,29 @@ const Independent = () => {
           </Space>
         }
       />
-      <Prompts
-        title="Do you want?"
-        items={placeholderPromptsItems}
-        styles={{
-          list: {
-            width: "100%",
-          },
-          item: {
-            flex: 1,
-          },
-        }}
-        onItemClick={onPromptsItemClick}
-      />
     </Space>
   );
   const items = messages.map(({ id, message, status }) => ({
     key: id,
-    loading: status === "loading",
+    loading: status === "ai",
+    header: status === "local" ? "You" : "DeepSeek",
     role: status === "local" ? "local" : "ai",
     content: message,
+    avatar: {
+      icon: status === "local" ? <UserOutlined /> : <OpenAIFilled />,
+      style: status === "local" ? localAvatar : aiAvatar,
+    },
+    footer: (
+      <Space>
+        <Button type="text" size="small" icon={<SyncOutlined />} />
+        <Button type="text" size="small" icon={<CopyOutlined />} />
+      </Space>
+    ),
   }));
+
+  // const items = messages.map(({ id, message, status }) => {
+  //   console.log(id, message, status);
+  // });
   const attachmentsNode = (
     <Badge dot={attachedFiles.length > 0 && !headerOpen}>
       <Button
@@ -378,7 +310,6 @@ const Independent = () => {
   const logoNode = (
     <div className={styles.logo}>
       <img src={X} draggable={false} alt="logo" />
-      <span>Ant Design X</span>
     </div>
   );
 
@@ -421,8 +352,6 @@ const Independent = () => {
           roles={roles}
           className={styles.messages}
         />
-        {/* 🌟 提示词 */}
-        <Prompts items={senderPromptsItems} onItemClick={onPromptsItemClick} />
         {/* 🌟 输入框 */}
         <Suggestion
           items={suggestions}
@@ -453,6 +382,27 @@ const Independent = () => {
             );
           }}
         </Suggestion>
+        {/* 🌟 开启深度思考 搜索 */}
+        <Flex gap="small" wrap>
+          <Button
+            type="primary"
+            size="small"
+            shape="round"
+            icon={<ThunderboltOutlined />}
+            autoInsertSpace={false}
+          >
+            DeepThink
+          </Button>
+          <Button
+            type="primary"
+            size="small"
+            shape="round"
+            icon={<GlobalOutlined />}
+            autoInsertSpace
+          >
+            Search
+          </Button>
+        </Flex>
       </div>
     </div>
   );

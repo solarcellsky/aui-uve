@@ -10,7 +10,7 @@ def create_app():
     app.config.from_object('gw_ai.settings')
 
     # init
-    CORS(app)
+    CORS(app, supports_credentials=True)
     db.init_app(app)
     api.init_app(app)
 

@@ -1,10 +1,11 @@
 import request from "./request";
 
 export default {
-  fetch: () => {
+  deepSeek: (params) => {
     return request({
-      url: '/ai',
-      method: 'get',
+      url: '/api/ai/deepseek',
+      method: 'POST',
+      data: params
     });
   },
 };

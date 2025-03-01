@@ -1,20 +1,18 @@
+from flask import request
 from flask.views import MethodView
 from flask_smorest import Blueprint
 from gw_ai.ext.commons import rest
 from openai import OpenAI
 
-bp = Blueprint("ai", __name__, url_prefix="/ai", description="AI API")
+bp = Blueprint("ai", __name__, url_prefix="/api/ai", description="AI API")
 
 
-@bp.route("")
+@bp.route("/deepseek")
 class AiResource(MethodView):
 
     @bp.doc(description="Ai API")
-    def get(self, params):
-
-        # VITE_API_KEY = "sk-67556059568b41d9847249dab6869ca4"
-        # VITE_PATH = "/chat/completions"
-        # VITE_MODEL = "deepseek-chat"
+    def post(self):
+        message = request.json.get("message")
 
         client = OpenAI(api_key="sk-67556059568b41d9847249dab6869ca4",
                         base_url="https://api.deepseek.com")
@@ -28,7 +26,7 @@ class AiResource(MethodView):
                 },
                 {
                     "role": "user",
-                    "content": "Hello"
+                    "content": message
                 },
             ],
             stream=False)
